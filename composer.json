@@ -1,0 +1,24 @@
+{
+  "name": "lohres/db-helper",
+  "description": "Helper class for database connection in lohres projects",
+  "type": "project",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Lohres\\DbHelper\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Christian Lührs",
+      "email": "info@lohres-log.de"
+    }
+  ],
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "require": {
+    "php": "^8.4",
+    "doctrine/dbal": "^4.3"
+  }
+}
