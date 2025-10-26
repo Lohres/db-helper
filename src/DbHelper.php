@@ -95,6 +95,14 @@ class DbHelper
     }
 
     /**
+     * @return QueryBuilder
+     */
+    public function getQueryBuilder(): QueryBuilder
+    {
+        return $this->connection->createQueryBuilder();
+    }
+
+    /**
      * @param string $table
      * @param array $input
      * @return int
@@ -152,14 +160,6 @@ class DbHelper
         ) {
             throw new RuntimeException(message: "config for db invalid!");
         }
-    }
-
-    /**
-     * @return QueryBuilder
-     */
-    private function getQueryBuilder(): QueryBuilder
-    {
-        return $this->connection->createQueryBuilder();
     }
 
     /**
