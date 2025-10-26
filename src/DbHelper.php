@@ -125,6 +125,15 @@ class DbHelper
     }
 
     /**
+     * @return int
+     * @throws Exception
+     */
+    public function getLastInsertedId(): int
+    {
+        return $this->connection->lastInsertId();
+    }
+
+    /**
      * @param string $table
      * @param array $columns
      * @param array $where
