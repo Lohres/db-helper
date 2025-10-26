@@ -36,30 +36,6 @@ class DbHelper
     }
 
     /**
-     * @return void
-     */
-    private function checkConfig(): void
-    {
-        if (
-            !defined(constant_name: "LOHRES_DB_NAME") ||
-            !defined(constant_name: "LOHRES_DB_USER") ||
-            !defined(constant_name: "LOHRES_DB_PWD") ||
-            !defined(constant_name: "LOHRES_DB_HOST") ||
-            !defined(constant_name: "LOHRES_DB_DRIVER")
-        ) {
-            throw new RuntimeException(message: "config for db invalid!");
-        }
-    }
-
-    /**
-     * @return QueryBuilder
-     */
-    public function getQueryBuilder(): QueryBuilder
-    {
-        return $this->connection->createQueryBuilder();
-    }
-
-    /**
      * @param string $tableName
      * @return bool
      * @throws Exception
@@ -67,6 +43,55 @@ class DbHelper
     public function checkIfTableExist(string $tableName): bool
     {
         return $this->connection->createSchemaManager()->tablesExist(names: [$tableName]);
+    }
+
+    /**
+     * @param string $table
+     * @param array $where
+     * @return int
+     * @throws Exception
+     */
+    public function countEntries(string $table, array $where = []): int
+    {
+        $qb = $this->getQueryBuilder()->select(expressions: "t.*")->from(table: $table, alias: "t");
+        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->rowCount();
+    }
+
+    /**
+     * @param string $table
+     * @param array $where
+     * @return int
+     * @throws Exception
+     */
+    public function deleteEntry(string $table, array $where): int
+    {
+        $qb = $this->getQueryBuilder()->delete(table: "$table t");
+        return $this->setWhereConditions(qb: $qb, where: $where)->executeStatement();
+    }
+
+    /**
+     * @param string $table
+     * @param array $where
+     * @return array|bool
+     * @throws Exception
+     */
+    public function findBy(string $table, array $where = []): array|bool
+    {
+        $qb = $this->getQueryBuilder()->select(expressions: "t.*")->from(table: $table, alias: "t");
+        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->fetchAllAssociative();
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @param array $where
+     * @return array|bool
+     * @throws Exception
+     */
+    public function getColumnValueBy(string $table, string $column, array $where = []): array|bool
+    {
+        $qb = $this->getQueryBuilder()->select(expressions: "t.$column")->from(table: $table, alias: "t");
+        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->fetchAssociative();
     }
 
     /**
@@ -114,52 +139,27 @@ class DbHelper
     }
 
     /**
-     * @param string $table
-     * @param array $where
-     * @return int
-     * @throws Exception
+     * @return void
      */
-    public function deleteEntry(string $table, array $where): int
+    private function checkConfig(): void
     {
-        $qb = $this->getQueryBuilder()->delete(table: "$table t");
-        return $this->setWhereConditions(qb: $qb, where: $where)->executeStatement();
+        if (
+            !defined(constant_name: "LOHRES_DB_NAME") ||
+            !defined(constant_name: "LOHRES_DB_USER") ||
+            !defined(constant_name: "LOHRES_DB_PWD") ||
+            !defined(constant_name: "LOHRES_DB_HOST") ||
+            !defined(constant_name: "LOHRES_DB_DRIVER")
+        ) {
+            throw new RuntimeException(message: "config for db invalid!");
+        }
     }
 
     /**
-     * @param string $table
-     * @param array $where
-     * @return int
-     * @throws Exception
+     * @return QueryBuilder
      */
-    public function countEntries(string $table, array $where = []): int
+    private function getQueryBuilder(): QueryBuilder
     {
-        $qb = $this->getQueryBuilder()->select(select: "t.*")->from(table: $table, alias: "t");
-        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->rowCount();
-    }
-
-    /**
-     * @param string $table
-     * @param array $where
-     * @return array|bool
-     * @throws Exception
-     */
-    public function findBy(string $table, array $where = []): array|bool
-    {
-        $qb = $this->getQueryBuilder()->select(select: "t.*")->from(table: $table, alias: "t");
-        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->fetchAllAssociative();
-    }
-
-    /**
-     * @param string $table
-     * @param string $column
-     * @param array $where
-     * @return array|bool
-     * @throws Exception
-     */
-    public function getColumnValueBy(string $table, string $column, array $where = []): array|bool
-    {
-        $qb = $this->getQueryBuilder()->select(select: "t.$column")->from(table: $table, alias: "t");
-        return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->fetchAssociative();
+        return $this->connection->createQueryBuilder();
     }
 
     /**
@@ -168,7 +168,7 @@ class DbHelper
      * @param int|null $count
      * @return QueryBuilder
      */
-    public function setWhereConditions(QueryBuilder $qb, array $where = [], ?int $count = null): QueryBuilder
+    private function setWhereConditions(QueryBuilder $qb, array $where = [], ?int $count = null): QueryBuilder
     {
         $j = 0;
         foreach ($where as $key => $value) {
