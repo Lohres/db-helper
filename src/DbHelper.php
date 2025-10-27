@@ -14,7 +14,7 @@ use RuntimeException;
  */
 class DbHelper
 {
-    private ?Connection $connection {
+    private Connection $connection {
         get {
             return $this->connection;
         }
@@ -48,10 +48,10 @@ class DbHelper
     /**
      * @param string $table
      * @param array $where
-     * @return int
+     * @return int|string
      * @throws Exception
      */
-    public function countEntries(string $table, array $where = []): int
+    public function countEntries(string $table, array $where = []): int|string
     {
         $qb = $this->getQueryBuilder()->select(expressions: "t.*")->from(table: $table, alias: "t");
         return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->rowCount();
@@ -60,10 +60,10 @@ class DbHelper
     /**
      * @param string $table
      * @param array $where
-     * @return int
+     * @return int|string
      * @throws Exception
      */
-    public function deleteEntry(string $table, array $where): int
+    public function deleteEntry(string $table, array $where): int|string
     {
         $qb = $this->getQueryBuilder()->delete(table: "$table t");
         return $this->setWhereConditions(qb: $qb, where: $where)->executeStatement();
@@ -72,10 +72,10 @@ class DbHelper
     /**
      * @param string $table
      * @param array $where
-     * @return array|bool
+     * @return array
      * @throws Exception
      */
-    public function findBy(string $table, array $where = []): array|bool
+    public function findBy(string $table, array $where = []): array
     {
         $qb = $this->getQueryBuilder()->select(expressions: "t.*")->from(table: $table, alias: "t");
         return $this->setWhereConditions(qb: $qb, where: $where)->executeQuery()->fetchAllAssociative();
@@ -105,10 +105,10 @@ class DbHelper
     /**
      * @param string $table
      * @param array $input
-     * @return int
+     * @return int|string
      * @throws Exception
      */
-    public function insertEntry(string $table, array $input): int
+    public function insertEntry(string $table, array $input): int|string
     {
         $count = count(value: $input);
         $keys = [];
@@ -125,10 +125,10 @@ class DbHelper
     }
 
     /**
-     * @return int
+     * @return int|string
      * @throws Exception
      */
-    public function getLastInsertedId(): int
+    public function getLastInsertedId(): int|string
     {
         return $this->connection->lastInsertId();
     }
@@ -137,10 +137,10 @@ class DbHelper
      * @param string $table
      * @param array $columns
      * @param array $where
-     * @return int
+     * @return int|string
      * @throws Exception
      */
-    public function updateEntry(string $table, array $columns, array $where): int
+    public function updateEntry(string $table, array $columns, array $where): int|string
     {
         $count = count(value: $columns);
         $values = [];
@@ -179,20 +179,20 @@ class DbHelper
      */
     private function setWhereConditions(QueryBuilder $qb, array $where = [], ?int $count = null): QueryBuilder
     {
-        $j = 0;
-        foreach ($where as $key => $value) {
-            $a = $j;
-            $b = $j;
+        $counter = 0;
+        foreach ($where as $expression => $value) {
+            $whereKey = $counter;
+            $andWhereKey = $counter;
             if (!is_null(value: $count)) {
-                $a = $count;
-                $b = $count + $j;
+                $whereKey = $count;
+                $andWhereKey = $count + $counter;
             }
-            if ($j === 0) {
-                $qb->where(predicate: "t." . $key)->setParameter(key: $a, value: $value);
+            if ($counter === 0) {
+                $qb->where(predicate: "t." . $expression)->setParameter(key: $whereKey, value: $value);
             } else {
-                $qb->andWhere(predicate: "t." . $key)->setParameter(key: $b, value: $value);
+                $qb->andWhere(predicate: "t." . $expression)->setParameter(key: $andWhereKey, value: $value);
             }
-            $j++;
+            $counter++;
         }
         return $qb;
     }
